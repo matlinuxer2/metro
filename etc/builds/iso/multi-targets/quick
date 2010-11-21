@@ -1,0 +1,6 @@
+# This is EXTREMELY quick.
+# Uses the latest stage2.
+
+[section multi]
+
+targets: $[:snapshot] stage3 $[:extras]
