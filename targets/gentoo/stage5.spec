@@ -28,7 +28,7 @@ chroot/run: [
 #!/bin/bash
 $[[steps/setup]]
 USE=-dynamic emerge $eopts cryptsetup || exit 1
-genkernel --unionfs --lvm --dmraid --luks all || exit 1
+genkernel --lvm --dmraid --luks all || exit 1
 cat << EOF >>/bin/bashlogin || exit 1
 #!/bin/sh
 

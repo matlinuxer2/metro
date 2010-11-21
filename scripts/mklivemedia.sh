@@ -85,7 +85,7 @@ default funtoo
 
 label funtoo
   kernel kernel
-  append root=/dev/ram0 looptype=squashfs loop=/image.squashfs cdroot unionfs
+  append root=/dev/ram0 looptype=squashfs loop=/image.squashfs cdroot
   initrd initramfs
 EOF
 
