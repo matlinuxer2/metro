@@ -29,16 +29,11 @@ chroot/run: [
 $[[steps/setup]]
 USE=-dynamic emerge $eopts cryptsetup || exit 1
 genkernel --lvm --dmraid --luks all || exit 1
-cat << EOF >>/bin/bashlogin || exit 1
-#!/bin/sh
-
-export HOME=/root
-cat /etc/motd 2>/dev/null
-cd /root
-[[ -e .bash_profile ]] && source .bash_profile
-exec -l /bin/bash -i
+sed -i -e '/^c/s!agetty 38400!mingetty --autologin root --noclear !' \
+	/etc/inittab || exit 1
+cat <<EOF >>/etc/login.defs
+NO_PASSWORD_CONSOLE tty1:tty2:tty3:tty4:tty5:tty6
 EOF
-sed -i -e '/^c/s!agetty!agetty -nl /bin/bashlogin!' /etc/inittab || exit 1
 echo > /etc/fstab || exit 1
 ]
 
