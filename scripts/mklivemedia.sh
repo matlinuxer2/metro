@@ -89,6 +89,20 @@ label funtoo
   initrd initramfs
 EOF
 
+cat >$cdroot/cdupdate.sh <<'EOF'
+#!/bin/sh
+# This is not very robust. Sorry.
+
+. /etc/initrd.defaults
+
+(test -d $NEW_ROOT/libexec/rc/init.d || mkdir -p $NEW_ROOT/libexec/rc/init.d) \
+	|| exit 1
+
+cp -ar $NEW_ROOT/mnt/livecd/libexec/rc $NEW_ROOT/libexec || exit 1
+mount -t tmpfs -o nosuid,nodev,noexec,relatime,size=1024k,mode=755 \
+	tmpfs $NEW_ROOT/libexec/rc/init.d || exit 1
+EOF
+
 mkisofs -l -o ${outfile:-funtoo.iso} \
 	-b isolinux/$(basename ${binfile:-isolinux.bin}) \
 	-c isolinux/boot.cat -no-emul-boot -boot-load-size 4 \
