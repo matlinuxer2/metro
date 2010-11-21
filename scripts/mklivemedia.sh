@@ -10,11 +10,12 @@
 
 usage() {
 	echo -e "$0 [out: <output file>] [bin: <isolinux binary>] \\"
-	echo -e "\t\t[cd: <cd directory root>] [sqfs: ] <squashfs image> \\"
-	echo -e "\t\t[<extra files>...]"
+	echo -e "\t\t[cd: <cd directory root>] [hybrid: <yes/no>] \\"
+	echo -e "\t\t[sqfs: ] <squashfs image> [<extra files>...]"
 	echo
 	echo "Create bootable live media for experimenting with or installing"
 	echo "Funtoo Linux."
+	echo
 }
 
 binfile=/usr/share/syslinux/isolinux.bin
