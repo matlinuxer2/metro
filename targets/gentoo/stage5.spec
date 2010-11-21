@@ -39,6 +39,7 @@ cd /root
 exec -l /bin/bash -i
 EOF
 sed -i -e '/^c/s!agetty!agetty -nl /bin/bashlogin!' /etc/inittab || exit 1
+echo > /etc/fstab || exit 1
 ]
 
 [section portage]
