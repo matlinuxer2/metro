@@ -1,18 +1,6 @@
 [collect ./stage/common.spec]
 [collect ./stage/capture/squashfs.spec]
-
-[section path/mirror]
-
-source: $[:source/subpath]/$[source/name].tar.*
-
-[section source]
-: stage4
-version: << $[path/mirror/control]/version/$[]
-name: $[]-$[:subarch]-$[:version]
-
-build: $[target/build]
-subarch: $[target/subarch]
-
+[collect ./stage/stage3-derivative.spec]
 
 [section path/mirror]
 
