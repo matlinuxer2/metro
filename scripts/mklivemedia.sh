@@ -99,8 +99,8 @@ cat >$cdroot/cdupdate.sh <<'EOF'
 	|| exit 1
 
 cp -ar $NEW_ROOT/mnt/livecd/libexec/rc $NEW_ROOT/libexec || exit 1
-mount -t tmpfs -o nosuid,nodev,noexec,relatime,size=1024k,mode=755 \
-	tmpfs $NEW_ROOT/libexec/rc/init.d || exit 1
+#mount -t tmpfs -o nosuid,nodev,noexec,relatime,size=1024k,mode=755 \
+#	tmpfs $NEW_ROOT/libexec/rc/init.d || exit 1
 EOF
 
 mkisofs -l -o ${outfile:-funtoo.iso} \
