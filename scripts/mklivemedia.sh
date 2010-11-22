@@ -122,7 +122,7 @@ cp -ar $NEW_ROOT/mnt/livecd/libexec/rc $NEW_ROOT/libexec || exit 1
 #	tmpfs $NEW_ROOT/libexec/rc/init.d || exit 1
 EOF
 
-test "$outfile" || volid="-V '${outfile%%.iso}'"
+test "$outfile" && volid="-V ${outfile%%.iso}" # BUG: spaces in name
 mkisofs -l -o ${outfile:-funtoo.iso} \
 	-b isolinux/$(basename ${binfile:-isolinux.bin}) \
 	-c isolinux/boot.cat -no-emul-boot -boot-load-size 4 \
