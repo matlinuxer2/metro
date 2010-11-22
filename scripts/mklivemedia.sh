@@ -12,7 +12,7 @@ usage() {
 	echo -e "$0 [out: <output file>] [bin: <isolinux binary>] \\"
 	echo -e "\t\t[cd: <cd directory root>] [hybrid: <yes/no>] \\"
 	echo -e "\t\t[mem: <memtest>] [sqfs: ] <squashfs image> \\"
-	echo -e "\t\t[dir: <extra directories>]... [<extra files>...]"
+	echo -e "\t\t[<extra files or directories>...]"
 	echo
 	echo "Create bootable live media for experimenting with or installing"
 	echo "Funtoo Linux."
@@ -31,7 +31,6 @@ while test "$#" -gt 0; do
 	-h)   usage; exit 0;;
 	bin:) shift; binfile=$1;;
 	cd:)  shift;  cdroot=$1;;
-	dir:) shift;   dlist="$dlist $1";;
 	hybrid:)shift; hybri=$1;;
 	mem:) shift; memfile=$1;;
 	out:) shift; outfile=$1;;
@@ -81,8 +80,13 @@ else
 	exit 1
 fi
 
-for i in $flist; do test -f "$i" && cp "$i" "$cdroot"; done
-for i in $dlist; do test -d "$i" && cp -r "$i" "$cdroot"; done
+for f in $flist; do
+	if test -f "$f"; then
+		cp "$f" "$cdroot"
+	elif test -d "$f"; then
+		cp -r "$f" "$cdroot"
+	fi
+done
 
 touch $cdroot/livecd
 cat << EOF >$cdroot/isolinux/isolinux.cfg
