@@ -11,7 +11,7 @@
 usage() {
 	echo -e "$0 [out: <output file>] [bin: <isolinux binary>] \\"
 	echo -e "\t\t[cd: <cd directory root>] [hybrid: <yes/no>] \\"
-	echo -e "\t\t[sqfs: ] <squashfs image> \\"
+	echo -e "\t\t[mem: <memtest>] [sqfs: ] <squashfs image> \\"
 	echo -e "\t\t[dir: <extra directories>]... [<extra files>...]"
 	echo
 	echo "Create bootable live media for experimenting with or installing"
