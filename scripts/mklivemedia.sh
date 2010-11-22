@@ -11,11 +11,14 @@
 usage() {
 	echo -e "$0 [out: <output file>] [bin: <isolinux binary>] \\"
 	echo -e "\t\t[cd: <cd directory root>] [hybrid: <yes/no>] \\"
-	echo -e "\t\t[sqfs: ] <squashfs image> [<extra files>...]"
+	echo -e "\t\t[sqfs: ] <squashfs image> \\"
+	echo -e "\t\t[dir: <extra directories>]... [<extra files>...]"
 	echo
 	echo "Create bootable live media for experimenting with or installing"
 	echo "Funtoo Linux."
 	echo
+	# Remember: Square brackets mean optional; sharp brackets mean
+	#	required arguments. Elipsis means they can be repeated.
 }
 
 binfile=/usr/share/syslinux/isolinux.bin
@@ -26,11 +29,13 @@ while test "$#" -gt 0; do
 	# Hopefully you read this message and the following code.
 	case "$1" in
 	-h)   usage; exit 0;;
-	out:) shift; outfile=$1;;
 	bin:) shift; binfile=$1;;
 	cd:)  shift;  cdroot=$1;;
-	sqfs:) shift;   sqfs=$1;;
+	dir:) shift;   dlist="$dlist $1";;
 	hybrid:)shift; hybri=$1;;
+	mem:) shift; memfile=$1;;
+	out:) shift; outfile=$1;;
+	sqfs:) shift;   sqfs=$1;;
 	*)	if test "$sqfs"; then
 			flist="$flist $1"
 		else
@@ -77,6 +82,7 @@ else
 fi
 
 for i in $flist; do test -f "$i" && cp "$i" "$cdroot"; done
+for i in $dlist; do test -d "$i" && cp -r "$i" "$cdroot"; done
 
 touch $cdroot/livecd
 cat << EOF >$cdroot/isolinux/isolinux.cfg
@@ -88,6 +94,15 @@ label funtoo
   append root=/dev/ram0 looptype=squashfs loop=/image.squashfs cdroot
   initrd initramfs
 EOF
+
+if test "$memfile" && test -f "$memfile"; then
+	cp "$memfile" $cdroot/isolinux/$(basename "$memfile")
+	cat <<EOF >>$cdroot/isolinux/isolinux.cfg
+
+label memtest
+  kernel $(basename "$memfile")
+EOF
+fi
 
 cat >$cdroot/cdupdate.sh <<'EOF'
 #!/bin/sh
@@ -103,10 +118,11 @@ cp -ar $NEW_ROOT/mnt/livecd/libexec/rc $NEW_ROOT/libexec || exit 1
 #	tmpfs $NEW_ROOT/libexec/rc/init.d || exit 1
 EOF
 
+test "$outfile" || volid="-V '${$outfile%%.iso}'"
 mkisofs -l -o ${outfile:-funtoo.iso} \
 	-b isolinux/$(basename ${binfile:-isolinux.bin}) \
 	-c isolinux/boot.cat -no-emul-boot -boot-load-size 4 \
-	-boot-info-table \
+	-boot-info-table $volid \
 		$cdroot/
 
 test x"${hybri:-no}" = "xyes" && isohybrid ${outfile:-funtoo.iso}
