@@ -12,6 +12,7 @@ usage() {
 	echo -e "$0 [out: <output file>] [bin: <isolinux binary>] \\"
 	echo -e "\t\t[cd: <cd directory root>] [hybrid: <yes/no>] \\"
 	echo -e "\t\t[mem: <memtest>] [sqfs: ] <squashfs image> \\"
+	echo -e "\t\t[sign: <gpg key>] \\"
 	echo -e "\t\t[<extra files or directories>...]"
 	echo
 	echo "Create bootable live media for experimenting with or installing"
@@ -34,6 +35,7 @@ while test "$#" -gt 0; do
 	hybrid:)shift; hybri=$1;;
 	mem:) shift; memfile=$1;;
 	out:) shift; outfile=$1;;
+	sign:) shift; gpgkey=$1;;
 	sqfs:) shift;   sqfs=$1;;
 	*)	if test "$sqfs"; then
 			flist="$flist $1"
@@ -130,3 +132,8 @@ mkisofs -l -o ${outfile:-funtoo.iso} \
 		$cdroot/
 
 test x"${hybri:-no}" = "xyes" && isohybrid ${outfile:-funtoo.iso}
+
+if test x"$gpgkey" != "x"; then
+	gpg --detach-sign --armor --local-user "$gpgkey" ${outfile:-funtoo.iso}
+	gpg --verify ${outfile:-funtoo.iso}.asc ${outfile:-funtoo.iso}
+fi
