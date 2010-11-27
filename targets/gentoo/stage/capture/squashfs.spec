@@ -70,7 +70,7 @@ if test "[iso/memtest?]" = "yes" && test -f "$[iso/memtest]"; then
 	cat <<EOF >>$workdir/isolinux/isolinux.cfg
 
 label memtest
-kernel $(basename "$[iso/memfile]")
+kernel $(basename "$[iso/memtest]")
 EOF
 
 test "$[iso/files/extra?]" = "yes" && for f in $[iso/files/extra]; do
