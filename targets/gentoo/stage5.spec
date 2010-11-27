@@ -16,7 +16,7 @@ subarch: $[target/subarch]
 
 [section path/mirror]
 
-target: $[:source/subpath]/$[target/name].squashfs
+target: $[:source/subpath]/$[target/name].iso
 
 [section target]
 
