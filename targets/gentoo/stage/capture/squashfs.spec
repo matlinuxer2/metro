@@ -43,10 +43,10 @@ cp "$squashout" "$workdir/image.squashfs"
 test -d "squashfs-root" && rm -fr "squashfs-root"
 unsquashfs $workdir/image.squashfs boot/*
 
-## Bug: if this matches more than one
-cp squashfs-root/boot/kernel* $workdir/isolinux/kernel
-cp squashfs-root/boot/initramfs* $workdir/isolinux/initramfs
-cp squashfs-root/boot/System.map* $workdir/isolinux/System.map
+## If this matches more than one, error out.
+cp -T squashfs-root/boot/kernel* $workdir/isolinux/kernel || exit 1
+cp -T squashfs-root/boot/initramfs* $workdir/isolinux/initramfs || exit 1
+cp -T squashfs-root/boot/System.map* $workdir/isolinux/System.map
 rm -fr squashfs-root
 
 touch $workdir/livecd
