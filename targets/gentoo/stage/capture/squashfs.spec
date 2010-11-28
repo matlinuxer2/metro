@@ -87,7 +87,7 @@ mkisofs -l -o $[path/mirror/target] \
 	-b isolinux/$(basename "$[iso/binfile]") \
 	-c isolinux/boot.cat -no-emul-boot -boot-load-size 4 \
 	-boot-info-table \
-		$workdir/
+		$workdir/ || exit 1
 
 test "$[iso/hybrid?]" = "yes" $$ isohybrid $[path/mirror/target]
 
