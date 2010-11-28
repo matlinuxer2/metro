@@ -32,7 +32,7 @@ cd $workdir
 mkdir -p $workdir/isolinux
 
 # XXX: These tests should go earlier.
-if test -f "$[iso/binfile:zap]"; then
+if test -f "$[iso/binfile:lax]"; then
 	cp "$[iso/binfile]" "$workdir/isolinux"
 else
 	echo "No ISO 9660 boot code data found - aborting"
@@ -63,7 +63,7 @@ $[[iso/files/cdupdate.sh:lax]]
 EOF
 fi
 
-if test "$[iso/memtest?]" = "yes" && test -f "$[iso/memtest]"; then
+if test "$[iso/memtest?]" = "yes" && test -f "$[iso/memtest:lax]"; then
 	cp "$[iso/memtest]" "$workdir/isolinux/$(basename "$[iso/memtest]")"
 	cat <<EOF >>$workdir/isolinux/isolinux.cfg
 
@@ -72,7 +72,7 @@ kernel $(basename "$[iso/memtest]")
 EOF
 fi
 
-for f in $[iso/files/extra:zap]; do
+for f in $[iso/files/extra:lax]; do
 	if test -f "$f"; then
 		cp "$f" "$workdir/"
 	elif test -d "$f"; then
@@ -93,7 +93,7 @@ cd - # Return to normal (doesn't really matter unless it does)
 
 if test "$[iso/gpgkey?]" = "yes"; then
 	gpg --detach-sign --armor --local-user "$[iso/gpgkey:zap]" \
-		$[path/mirror/target]
+		$[path/mirror/target] && \
 	gpg --verify $[path/mirror/target].asc $[path/mirror/target]
 fi
 
