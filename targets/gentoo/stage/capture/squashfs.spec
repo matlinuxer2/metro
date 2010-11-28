@@ -72,6 +72,7 @@ if test "[iso/memtest?]" = "yes" && test -f "$[iso/memtest]"; then
 label memtest
 kernel $(basename "$[iso/memtest]")
 EOF
+fi
 
 test "$[iso/files/extra?]" = "yes" && for f in $[iso/files/extra]; do
 	if test -f "$f"; then
