@@ -82,11 +82,11 @@ test "$[iso/files/extra?]" = "yes" && for f in $[iso/files/extra]; do
 	fi
 done
 
-volid="-V ${squashout%%.squashfs}" # This hack beats all hacks
+#volid="-V ${squashout%%.squashfs}" # This hack beats all hacks
 mkisofs -l -o $[path/mirror/target] \
 	-b isolinux/$(basename "$[iso/binfile]") \
 	-c isolinux/boot.cat -no-emul-boot -boot-load-size 4 \
-	-boot-info-table $volid \
+	-boot-info-table \
 		$workdir/
 
 test "$[iso/hybrid?]" = "yes" $$ isohybrid $[path/mirror/target]
