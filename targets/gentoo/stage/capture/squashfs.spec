@@ -32,13 +32,11 @@ cd $workdir
 mkdir -p $workdir/isolinux
 
 # XXX: These tests should go earlier.
-if test "$[iso/binfile?]" = "no" || test ! -f "$[iso/binfile]"; then
+if test -f "$[iso/binfile:zap]"; then
+	cp "$[iso/binfile]" "$workdir/isolinux"
+else
 	echo "No ISO 9660 boot code data found - aborting"
 	exit 1 # XXX: change exit code to be less generic
-fi
-
-if test -f "$[iso/binfile]"; then # XXX: Double test (see above)
-	cp "$[iso/binfile]" "$workdir/isolinux"
 fi
 
 cp "$squashout" "$workdir/image.squashfs"
@@ -55,7 +53,7 @@ touch $workdir/livecd
 
 if test "$[iso/files/isolinux.cfg?]" = "yes"; then
 	cat >$workdir/isolinux/isolinux.cfg << "EOF"
-$[[iso/files/isolinux.cfg:lax]]
+$[[iso/files/isolinux.cfg]]
 EOF
 fi
 
@@ -66,7 +64,7 @@ EOF
 fi
 
 if test "$[iso/memtest?]" = "yes" && test -f "$[iso/memtest]"; then
-	cp "$[iso/memtest] "$workdir/isolinux/$(basename "$[iso/memtest]")
+	cp "$[iso/memtest]" "$workdir/isolinux/$(basename "$[iso/memtest]")"
 	cat <<EOF >>$workdir/isolinux/isolinux.cfg
 
 label memtest
@@ -74,7 +72,7 @@ kernel $(basename "$[iso/memtest]")
 EOF
 fi
 
-test "$[iso/files/extra?]" = "yes" && for f in $[iso/files/extra]; do
+for f in $[iso/files/extra:zap]; do
 	if test -f "$f"; then
 		cp "$f" "$workdir/"
 	elif test -d "$f"; then
@@ -89,11 +87,12 @@ mkisofs -l -o $[path/mirror/target] \
 	-boot-info-table \
 		$workdir/ || exit 1
 
-test "$[iso/hybrid?]" = "yes" $$ isohybrid $[path/mirror/target]
+test "$[iso/hybrid:zap]" = "yes" && isohybrid $[path/mirror/target]
 
 cd - # Return to normal (doesn't really matter unless it does)
-if test "$[iso/gpgkey?]" = "yes" && test "$[iso/gpgkey]"; then
-	gpg --detach-sign --armor --local-user "$[iso/gpgkey]" \
+
+if test "$[iso/gpgkey?]" = "yes"; then
+	gpg --detach-sign --armor --local-user "$[iso/gpgkey:zap]" \
 		$[path/mirror/target]
 	gpg --verify $[path/mirror/target].asc $[path/mirror/target]
 fi
