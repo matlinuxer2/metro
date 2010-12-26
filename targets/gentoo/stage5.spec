@@ -32,6 +32,11 @@ echo > /etc/fstab || exit 1
 genkernel --lvm --dmraid --luks all || exit 1
 sed -i -e '/^c/s!agetty 38400!mingetty --autologin root --noclear!' \
 	/etc/inittab || exit 1
+
+rm -r /usr/share/doc/
+rm -r /usr/share/man/
+rm -r /usr/src/
+
 ]
 
 [section portage]

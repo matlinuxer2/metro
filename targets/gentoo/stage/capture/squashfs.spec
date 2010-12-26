@@ -87,6 +87,8 @@ mkisofs -l -o $[path/mirror/target] \
 	-boot-info-table \
 		$workdir/ || exit 1
 
+rm -fr $workdir
+
 test "$[iso/hybrid:zap]" = "yes" && isohybrid $[path/mirror/target]
 
 cd - # Return to normal (doesn't really matter unless it does)
