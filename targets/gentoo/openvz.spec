@@ -1,4 +1,3 @@
-[collect ../../subarch/$[target/subarch].spec]
 [collect ./stage/stage3-derivative.spec]
 
 [section metro]
@@ -8,11 +7,11 @@ class: chroot
 [section target]
 
 type: image
-name: funtoo-openvz-$[target/subarch]-$[target/version]
+name: funtoo-openvz-$[:subarch]-$[:build]-$[:version]
 
 [section path/mirror]
 
-target: $[:target/subpath]/openvz/$[target/name].tar.$[target/compression]
+target: $[:target/openvz/subpath]/$[target/name].tar.$[target/compression]
 
 [section path]
 
@@ -168,6 +167,10 @@ EOF
 $[[files/motd]]
 EOF
 	rm -rf /etc/ssh/ssh_host* /var/tmp/* /var/log/* /tmp/* /root/.bash_history /etc/resolv.conf
+
+
+	echo "Setting system type to OpenVZ..."
+	echo 'rc_sys="openvz"' >> /etc/rc.conf
 
 	# TESTS
 	echo "Performing QA checks..."

@@ -31,7 +31,6 @@ class collection:
 		# lax means: if a key isn't found, pretend it exists but return the empty string.
 		self.lax=False
 		self.laxvars={}
-		self.laxstring="[BLANK var=%s %s]"
 		self.blanks={}
 		# self.collected holds the names of files we've collected (parsed)
 		self.collected=[]
@@ -88,7 +87,7 @@ class collection:
 			if boolean:
 				return "no"
 			else:
-				return self.laxstring % ( myvar, "foo" )
+				return ""
 		else:
 			if boolean:
 				return "no"
@@ -125,7 +124,7 @@ class collection:
 					if boolean:
 						mystring = "no"
 					elif len(stack) and self.laxvars.has_key(stack[-1]) and self.laxvars[stack[-1]]:
-						mystring = self.laxstring % ( myvar, "" )
+						mystring = ""
 					else:
 						raise KeyError, "Variable "+repr(myvar)+" not found."
 				elif boolean:
@@ -223,7 +222,10 @@ class collection:
 						# when expandMulti gets None, it won't add this line so we won't get a blank line even
 						return None
 					else:
-						ex += newex
+						if newex != None:
+							ex += newex
+						else:
+							return None
 				else:
 					# self.raw[varname] can be a list .. if it's a string and blank, we treat it as undefined.
 					if type(self.raw[varname]) == types.StringType and self.raw[varname].strip() == "":
@@ -251,7 +253,7 @@ class collection:
 						ex += "no"
 					else:
 						self.blanks[varname] = True
-						ex += self.laxstring % ( varname, "bar" )
+						ex += ""
 				else:
 					if not boolean:
 						raise KeyError, "Cannot find variable %s (in %s)" % (varname,myvar)
@@ -297,7 +299,7 @@ class collection:
 			if multi == None:
 				if ("lax" in newoptions.keys()) or (len(stack) and self.laxvars.has_key(stack[-1]) and self.laxvars[stack[-1]]):
 					self.blanks[myvar] = True
-					return [self.laxstring % ( myvar, "oni" ) ]
+					return ""
 				else:
 					raise FlexDataError("referenced variable \""+myvar+"\" not found")
 		newlines=[]
@@ -529,6 +531,7 @@ class collection:
 		return mysplit
 
 	def collect(self,filename,origfile):
+		global debug
 		if not os.path.isabs(filename):
 			# relative path - use origfile (the file the collect annotation appeared in) to figure out what we are relative to
 			filename=os.path.normpath(os.path.dirname(origfile)+"/"+filename)
@@ -545,6 +548,8 @@ class collection:
 				break
 		openfile.close()
 		# add to our list of parsed files
+		if debug:
+			sys.stdout.write("Debug: collected: %s\n" % os.path.normpath(filename))
 		self.collected.append(os.path.normpath(filename))
 
 	def conditionOnConditional(self,cond):

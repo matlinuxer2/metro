@@ -14,11 +14,11 @@
 
 [section target]
 
-name: $[target]-$[target/subarch]-$[target/version]
+name: $[]-$[:subarch]-$[:build]-$[:version]
 
 [section path/mirror]
 
-source: $[:source/subpath]/stage1-$[source/subarch]-$[source/version].tar.*
+source: $[:source/subpath]/stage1-$[source/subarch]-$[source/build]-$[source/version].tar.*
 target: $[:target/subpath]/$[target/name].tar.$[target/compression]
 
 [section portage]
@@ -110,7 +110,7 @@ for dep in portage.settings.packages:
 	else:
 		pkgdict[catpkg.split("/")[1]]=dep
 
-pkglist = ["texinfo", "gettext", "binutils", "gcc", "glibc", "baselayout", "zlib" ]
+pkglist = ["texinfo", "gettext", "binutils", "gcc", "glibc", "baselayout", "zlib", "shadow" ]
 
 #, "perl", "python", "libtool" ]
 

@@ -18,8 +18,8 @@ do_help() {
 
   Usage: $0 build arch [ full|freshen|quick [date] ]
   Examples:
-  	# $0 funtoo amd64
-	# $0 ~funtoo core2 freshen
+  	# $0 funtoo-stable generic_64
+	# $0 funtoo-current core2_32 freshen
 	# $0 gentoo pentium4 full 2009.01.03
 EOF
 }
@@ -54,7 +54,7 @@ if [ "$#" -ge "4" ]
 then
 	VERS=$4
 else
-	VERS=`date +%Y.%m.%d`
+	VERS=`date +%Y-%m-%d`
 fi
-
-exec $METRO multi: yes metro/build: $BUILD target/subarch: $SUBARCH target/version: $VERS multi/mode: $MODE
+echo Running $METRO -d multi: yes metro/build: $BUILD target/subarch: $SUBARCH target/version: $VERS multi/mode: $MODE
+exec $METRO -d multi: yes metro/build: $BUILD target/subarch: $SUBARCH target/version: $VERS multi/mode: $MODE
