@@ -1,0 +1,4 @@
+[section multi]
+
+targets: kernel initramfs rootfs
+

@@ -1,0 +1,91 @@
+[collect ./stage/common.spec]
+[collect ./stage/stage3-derivative.spec]
+
+[section path/mirror]
+
+target: $[:source/subpath]/$[target/name].tar.bz2
+
+[section target]
+
+name: kernel-$[target/subarch]-$[target/version]
+
+[section steps]
+unpack/post: [
+#!/bin/bash
+
+conf="$[path/mirror/snapshot/subpath]/kernel-config-$[target/version]"
+
+if [ -e "$conf" ]; then
+	[ ! -d $[path/chroot]/boot ] && install -d $[path/chroot]/boot --mode=0755
+	echo "Coping Linux kernel config $conf..."
+	cp  $conf $[path/chroot]/boot/kernel-config
+else
+	echo "Required file $conf not found. Build kernel with default settings..." 
+fi
+
+]
+
+chroot/run: [
+#!/bin/bash
+$[[steps/setup]]
+
+cat > /etc/portage/package.keywords <<EOF
+sys-apps/sysvinit ~*
+EOF
+
+cat > /etc/portage/package.use<<EOF
+dev-libs/libgcrypt static-libs
+EOF
+
+emerge $eopts --getbinpkg=y --usepkg=y \
+      	sys-kernel/gentoo-sources \
+        sys-kernel/genkernel \
+	|| (bash ; exit 1 )
+
+if [ -f "/boot/kernel-config" ]; then
+	opts_config=" --kernel-config=/boot/kernel-config "
+fi
+
+genkernel --no-clean --no-mountboot \
+	--kerncache=/boot/$[target/name].tar.bz2 \
+	$opts_config \
+	kernel
+
+]
+
+capture: [
+#!/bin/bash
+
+die() {
+	echo $*
+	rm -f $[path/mirror/target]
+	exit 1
+}
+
+trap "die user interrupt - Removing incomplete template..." INT
+
+rm -rf /tmp/steps || die "Steps cleanup fail"
+outdir=`dirname $[path/mirror/target]`
+if [ ! -d $outdir ]
+then
+	install -d $outdir || "Output path $outdir does not exist"
+fi
+
+echo "Creating $[path/mirror/target]..."
+
+cp $[path/chroot/stage]/boot/$[target/name].tar.bz2 $[path/mirror/target]
+
+kernel_pathname="$(find $[path/chroot/stage]/boot/ -name 'kernel*' -type f | head -n 1)"
+
+cp $kernel_pathname $outdir/kernel
+cp $[path/chroot/stage]/usr/src/linux/.config $outdir/config
+
+if [ $? -ge 2 ]
+then
+	die "Error creating tarball"
+fi
+]
+
+[section portage]
+
+ROOT: /
