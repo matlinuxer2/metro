@@ -14,7 +14,7 @@ name: rootfs-$[:subarch]-$[:build]-$[:version]
 unpack/post: [
 #!/bin/bash
 
-kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/version].tar.bz2"
+kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/build]-$[target/version].tar.bz2"
 
 if [ -e "$kerncache" ]; then
         echo "Coping kerncache $kerncache..."

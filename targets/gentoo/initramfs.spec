@@ -13,7 +13,7 @@ name: initramfs-$[:subarch]-$[:build]-$[:version]
 unpack/post: [
 #!/bin/bash
 
-kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/version].tar.bz2"
+kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/build]-$[target/version].tar.bz2"
 dracut="$[path/mirror/snapshot/subpath]/dracut-$[target/version].tar.xz"
 
 
