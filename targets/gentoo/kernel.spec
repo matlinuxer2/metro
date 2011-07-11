@@ -7,7 +7,7 @@ target: $[:source/subpath]/$[target/name].tar.bz2
 
 [section target]
 
-name: kernel-$[target/subarch]-$[target/version]
+name: kernel-$[:subarch]-$[:build]-$[:version]
 
 [section steps]
 unpack/post: [

@@ -7,7 +7,7 @@ target: $[:source/subpath]/$[target/name].cpio.gz
 
 [section target]
 
-name: initramfs-$[target/subarch]-$[target/version]
+name: initramfs-$[:subarch]-$[:build]-$[:version]
 
 [section steps]
 unpack/post: [

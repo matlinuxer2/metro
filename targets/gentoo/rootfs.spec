@@ -8,7 +8,7 @@ target: $[:source/subpath]/$[target/name].squashfs
 
 [section target]
 
-name: rootfs-$[target/subarch]-$[target/version]
+name: rootfs-$[:subarch]-$[:build]-$[:version]
 
 [section steps]
 unpack/post: [
@@ -42,11 +42,22 @@ genkernel --no-clean --no-mountboot \
 	--kerncache=/tmp/kerncache.tar.bz2 \
 	kernel
 
-cat > /etc/portage/package.keywords<<EOF
+keywords_file="/usr/portage/_etc/package.keywords"
+use_file="/usr/portage/_etc/package.use"
+if [ -e "$keywords_file" ]; then
+        echo "Coping portage settings $keywords_file => /etc/portage/package.keywords ..."
+        cp -v $keywords_file /etc/portage/package.keywords 
+fi
+if [ -e "$use_file" ]; then
+        echo "Coping portage settings $use_file => /etc/portage/package.use ..."
+        cp -v $use_file /etc/portage/package.use 
+fi
+
+cat >> /etc/portage/package.keywords <<EOF
 $[[emerge/packages/rootfs_keywords]]
 EOF
 
-cat > /etc/portage/package.use <<EOF
+cat >> /etc/portage/package.use <<EOF
 $[[emerge/packages/rootfs_use]]
 EOF
 
