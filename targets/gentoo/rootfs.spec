@@ -30,6 +30,8 @@ chroot/run: [
 #!/bin/bash
 $[[steps/setup]]
 
+eselect profile set 1
+
 emerge $eopts --getbinpkg=y --usepkg=y \
         sys-kernel/genkernel \
 	|| (bash ; exit 1 )
