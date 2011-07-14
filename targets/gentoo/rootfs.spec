@@ -30,7 +30,7 @@ chroot/run: [
 #!/bin/bash
 $[[steps/setup]]
 
-eselect profile set 1
+#eselect profile set 1
 
 emerge $eopts --getbinpkg=y --usepkg=y \
         sys-kernel/genkernel \
@@ -55,7 +55,7 @@ if [ -e "$use_file" ]; then
         cp -v $use_file /etc/portage/package.use 
 fi
 
-cat >> /etc/portage/package.keywords <<EOF
+cat >> /etc/portage/package.accept_keywords <<EOF
 $[[emerge/packages/rootfs_keywords]]
 EOF
 
@@ -63,8 +63,12 @@ cat >> /etc/portage/package.use <<EOF
 $[[emerge/packages/rootfs_use]]
 EOF
 
+cat >> /etc/portage/package.license <<EOF
+$[[emerge/packages/rootfs_license]]
+EOF
+
 export USE="$[portage/USE] bindist"
-emerge $eopts $[emerge/packages/rootfs:zap] || ( bash ; exit 1 )
+emerge --update $eopts $[emerge/packages/rootfs:zap] || ( bash ; exit 1 )
 
 emerge $eopts --oneshot net-dialup/mingetty
 
