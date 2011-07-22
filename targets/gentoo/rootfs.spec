@@ -44,31 +44,13 @@ genkernel --no-clean --no-mountboot \
 	--kerncache=/tmp/kerncache.tar.bz2 \
 	kernel
 
-keywords_file="/usr/portage/_etc/package.keywords"
-use_file="/usr/portage/_etc/package.use"
-if [ -e "$keywords_file" ]; then
-        echo "Coping portage settings $keywords_file => /etc/portage/package.keywords ..."
-        cp -v $keywords_file /etc/portage/package.keywords 
+if [ -d "/usr/portage/_etc/" ]; then
+        echo "Coping portage settings ..."
+	rsync -avz /usr/portage/_etc/ /etc/
 fi
-if [ -e "$use_file" ]; then
-        echo "Coping portage settings $use_file => /etc/portage/package.use ..."
-        cp -v $use_file /etc/portage/package.use 
-fi
-
-cat >> /etc/portage/package.accept_keywords <<EOF
-$[[emerge/packages/rootfs_keywords]]
-EOF
-
-cat >> /etc/portage/package.use <<EOF
-$[[emerge/packages/rootfs_use]]
-EOF
-
-cat >> /etc/portage/package.license <<EOF
-$[[emerge/packages/rootfs_license]]
-EOF
 
 export USE="$[portage/USE] bindist"
-emerge --update $eopts $[emerge/packages/rootfs:zap] || ( bash ; exit 1 )
+emerge --update $eopts @mat || ( bash ; exit 1 )
 
 emerge $eopts --oneshot net-dialup/mingetty
 
