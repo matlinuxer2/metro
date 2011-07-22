@@ -13,7 +13,7 @@ name: kernel-$[:subarch]-$[:build]-$[:version]
 unpack/post: [
 #!/bin/bash
 
-conf="$[path/mirror/snapshot/subpath]/kernel-config-$[target/version]"
+conf="$[path/mirror/snapshot/subpath]/kernel-config"
 
 if [ -e "$conf" ]; then
 	[ ! -d $[path/chroot]/boot ] && install -d $[path/chroot]/boot --mode=0755
