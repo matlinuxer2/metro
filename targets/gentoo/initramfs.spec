@@ -18,18 +18,19 @@ dracut="$[path/mirror/snapshot/subpath]/dracut-$[target/version].tar.xz"
 
 
 if [ -e "$kerncache" ]; then
-        [ ! -d $[path/chroot]/boot ] && install -d $[path/chroot]/boot --mode=0755
         echo "Coping kerncache $kerncache..."
-        cp  $kerncache $[path/chroot]/boot/kerncache.tar.bz2
+        cp  $kerncache $[path/chroot]/tmp/kerncache.tar.bz2
 else
         echo "Required file $kerncache not found. ..."
 	exit 1
 fi
 
 if [ -e "$dracut" ]; then
-        [ ! -d $[path/chroot]/boot/dracut ] && install -d $[path/chroot]/boot/dracut --mode=0755
+        if [ ! -d $[path/chroot]/boot/dracut ]; then
+		install -d $[path/chroot]/tmp/dracut --mode=0755
+	fi
         echo "Coping dracut $dracut..."
-        tar -Jxf $dracut -C $[path/chroot]/boot/dracut/
+        tar -Jxf $dracut -C $[path/chroot]/tmp/dracut/
 else
         echo "Required file $dracut not found. ..."
 	exit 1
@@ -65,17 +66,17 @@ emerge $eopts --getbinpkg=y --usepkg=y --onlydeps \
 
 genkernel --no-clean --no-mountboot \
         --no-kernel-sources \
-	--kerncache=/boot/kerncache.tar.bz2 \
+	--kerncache=/tmp/kerncache.tar.bz2 \
 	kernel
 
 kernel_pathname="$(find /boot/ -name 'kernel*' -type f | head -n 1)"
 initramfs_pathname="${kernel_pathname/kernel-/initramfs-}"
 kernel_filename="$( basename ${kernel_pathname} )"
-kernel_version="${kernel_filename#kernel-genkernel-$[target/subarch]-}"
+kernel_version="${kernel_filename#kernel-genkernel-*-}"
 
 touch /etc/ld.so.conf.d/empty
 
-export PATH="/boot/dracut/:$PATH"
+export PATH="/tmp/dracut/:$PATH"
 
 dracut --verbose \
        --force \
@@ -121,7 +122,6 @@ then
 	die "Error creating tarball"
 fi
 
-#bash 
 ]
 
 [section portage]

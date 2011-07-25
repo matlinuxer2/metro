@@ -18,7 +18,7 @@ conf="$[path/mirror/snapshot/subpath]/kernel-config"
 if [ -e "$conf" ]; then
 	[ ! -d $[path/chroot]/boot ] && install -d $[path/chroot]/boot --mode=0755
 	echo "Coping Linux kernel config $conf..."
-	cp  $conf $[path/chroot]/boot/kernel-config
+	cp  $conf $[path/chroot]/tmp/kernel-config
 else
 	echo "Required file $conf not found. Build kernel with default settings..." 
 fi
@@ -31,10 +31,12 @@ $[[steps/setup]]
 
 cat > /etc/portage/package.keywords <<EOF
 sys-apps/sysvinit ~*
+sys-apps/aufs2 ~*
 EOF
 
 cat > /etc/portage/package.use<<EOF
 dev-libs/libgcrypt static-libs
+sys-fs/aufs2 kernel-patch
 EOF
 
 emerge $eopts --getbinpkg=y --usepkg=y \
@@ -42,15 +44,21 @@ emerge $eopts --getbinpkg=y --usepkg=y \
         sys-kernel/genkernel \
 	|| (bash ; exit 1 )
 
-if [ -f "/boot/kernel-config" ]; then
-	opts_config=" --kernel-config=/boot/kernel-config "
+if [ -f "/tmp/kernel-config" ]; then
+	opts_config=" --kernel-config=/tmp/kernel-config "
 fi
+
+genkernel --no-clean --no-mountboot \
+	$opts_config \
+	kernel
+
+emerge --oneshot --autounmask-write sys-fs/aufs2
+emerge --oneshot --autounmask-write sys-fs/aufs2
 
 genkernel --no-clean --no-mountboot \
 	--kerncache=/boot/$[target/name].tar.bz2 \
 	$opts_config \
 	kernel
-
 ]
 
 capture: [
