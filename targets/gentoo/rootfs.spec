@@ -61,8 +61,10 @@ genkernel --no-clean --no-mountboot \
 	--kerncache=/tmp/kerncache.tar.bz2 \
 	kernel
 
-export USE="$[portage/USE] bindist"
-emerge --update $eopts @mat || ( bash ; exit 1 )
+#export USE="$[portage/USE] bindist"
+emerge --update --autounmask=y --autounmask-write $eopts @mat \
+	       || emerge --update $eopts @mat \
+	       || ( bash ; exit 1 )
 
 emerge $eopts --oneshot net-dialup/mingetty
 
