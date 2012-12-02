@@ -31,7 +31,6 @@ if [ -d "$CHROOT_DIR" ];then
 fi
 
 kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/build]-$[target/version].tar.bz2"
-dracut="$[path/mirror/snapshot/subpath]/dracut-$[target/version].tar.xz"
 
 
 if [ -e "$kerncache" ]; then
@@ -68,10 +67,6 @@ vim -i NONE -e -X -c ':123 move 117' -c':wq' $(which genkernel)
 DRACUT_MODULES="dmsquash-live" \
 emerge $eopts --getbinpkg=y --usepkg=y --onlydeps --autounmask=y --autounmask-write \
 	sys-kernel/dracut
-
-emerge $eopts --getbinpkg=y --usepkg=y --onlydeps --autounmask=y --autounmask-write \
-	sys-kernel/dracut \
-	|| (bash ; exit 1 )
 
 genkernel --no-clean --no-mountboot \
         --no-kernel-sources \
