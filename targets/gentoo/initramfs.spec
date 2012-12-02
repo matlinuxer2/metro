@@ -14,7 +14,6 @@ unpack/post: [
 #!/bin/bash
 
 kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/build]-$[target/version].tar.bz2"
-dracut="$[path/mirror/snapshot/subpath]/dracut-$[target/version].tar.xz"
 
 
 if [ -e "$kerncache" ]; then
@@ -22,17 +21,6 @@ if [ -e "$kerncache" ]; then
         cp  $kerncache $[path/chroot]/tmp/kerncache.tar.bz2
 else
         echo "Required file $kerncache not found. ..."
-	exit 1
-fi
-
-if [ -e "$dracut" ]; then
-        if [ ! -d $[path/chroot]/boot/dracut ]; then
-		install -d $[path/chroot]/tmp/dracut --mode=0755
-	fi
-        echo "Coping dracut $dracut..."
-        tar -Jxf $dracut -C $[path/chroot]/tmp/dracut/
-else
-        echo "Required file $dracut not found. ..."
 	exit 1
 fi
 
