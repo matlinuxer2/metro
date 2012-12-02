@@ -1,25 +1,6 @@
-[collect ./stage/common.spec]
-[collect ./stage/capture/tar.spec]
-
-[section source]
-
-: stage1
-
-# The collect annotation below will allow us to grab a remote stage1
-# for our build if $[strategy/build] is "remote" and $[strategy/seed]
-# is "stage1". In all other cases, we use a local stage1 as a seed
-# for our stage2:
-
-[collect ./stage2/strategy/$[strategy/build]/$[strategy/seed]]
-
-[section target]
-
-name: $[]-$[:subarch]-$[:build]-$[:version]
-
-[section path/mirror]
-
-source: $[:source/subpath]/stage1-$[source/subarch]-$[source/build]-$[source/version].tar.*
-target: $[:target/subpath]/$[target/name].tar.$[target/compression]
+[collect ./source/stage1.spec]
+[collect ./target/stage2.spec]
+[collect ./steps/capture/tar.spec]
 
 [section portage]
 
@@ -45,7 +26,7 @@ export USE="-* bootstrap `python /tmp/bootstrap.py --use`"
 # adding oneshot below so "libtool" doesn't get added to the world file... 
 # libtool should be in the system profile, but is not currently there it seems.
 emerge $eopts --oneshot `python /tmp/bootstrap.py --pkglist` || exit 1
-emerge --clean || exit 1
+emerge --clean 
 emerge --prune sys-devel/gcc || exit 1
 
 # Currently, a minimal, barely functional Python is installed. Upgrade to
@@ -53,7 +34,10 @@ emerge --prune sys-devel/gcc || exit 1
 # build:
 
 unset USE
-emerge $eopts --oneshot dev-lang/python || exit 1
+for atom in `portageq match / dev-lang/python`
+do
+	emerge $eopts --oneshot =$atom || exit 1
+done
 
 gcc-config $(gcc-config --get-current-profile)
 
@@ -96,7 +80,7 @@ alloweduse_startswith = ["userland_"]
 
 use=portage.settings["USE"].split()
 
-myuse=portage.settings["STAGE1_USE"].split()
+myuse=portage.settings["BOOTSTRAP_USE"].split()
 
 for x in use:
 	if x in alloweduse:
