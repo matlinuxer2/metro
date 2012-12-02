@@ -14,6 +14,23 @@ name: rootfs-$[:subarch]-$[:build]-$[:version]
 unpack/post: [
 #!/bin/bash
 
+FROM_DIR="$[path/live_in_chroot]/"
+CHROOT_DIR="$[path/chroot]/"
+MIRROR_DIR="$[path/mirror/source/subpath]/"
+
+if [ -d "$CHROOT_DIR" ];then
+
+	if [ -d "$FROM_DIR" ]; then
+		echo "Syncing live seeds from $FROM_DIR to $CHROOT_DIR ..."
+		rsync -avz "$FROM_DIR" "$CHROOT_DIR"
+	fi
+
+	if [ -d "$MIRROR_DIR" ]; then
+		echo "Retrieve done list..."
+		ls > $CHROOT_DIR/tmp/done.list
+	fi
+fi
+
 kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/build]-$[target/version].tar.bz2"
 
 if [ -e "$kerncache" ]; then
@@ -44,13 +61,10 @@ genkernel --no-clean --no-mountboot \
 	--kerncache=/tmp/kerncache.tar.bz2 \
 	kernel
 
-if [ -d "/usr/portage/_etc/" ]; then
-        echo "Coping portage settings ..."
-	rsync -avz /usr/portage/_etc/ /etc/
-fi
-
-export USE="$[portage/USE] bindist"
-emerge --update $eopts @mat || ( bash ; exit 1 )
+#export USE="$[portage/USE] bindist"
+emerge --update --autounmask=y --autounmask-write $eopts @mat \
+	       || emerge --update $eopts @mat \
+	       || ( bash ; exit 1 )
 
 emerge $eopts --oneshot net-dialup/mingetty
 

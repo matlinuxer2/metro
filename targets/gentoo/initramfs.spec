@@ -13,6 +13,23 @@ name: initramfs-$[:subarch]-$[:build]-$[:version]
 unpack/post: [
 #!/bin/bash
 
+FROM_DIR="$[path/live_in_chroot]/"
+CHROOT_DIR="$[path/chroot]/"
+MIRROR_DIR="$[path/mirror/source/subpath]/"
+
+if [ -d "$CHROOT_DIR" ];then
+
+	if [ -d "$FROM_DIR" ]; then
+		echo "Syncing live seeds from $FROM_DIR to $CHROOT_DIR ..."
+		rsync -avz "$FROM_DIR" "$CHROOT_DIR"
+	fi
+
+	if [ -d "$MIRROR_DIR" ]; then
+		echo "Retrieve done list..."
+		ls > $CHROOT_DIR/tmp/done.list
+	fi
+fi
+
 kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/build]-$[target/version].tar.bz2"
 
 
@@ -48,9 +65,8 @@ vim -i NONE -e -X -c ':123 move 117' -c':wq' $(which genkernel)
 
 
 DRACUT_MODULES="dmsquash-live" \
-emerge $eopts --getbinpkg=y --usepkg=y --onlydeps \
-	sys-kernel/dracut \
-	|| (bash ; exit 1 )
+emerge $eopts --getbinpkg=y --usepkg=y --onlydeps --autounmask=y --autounmask-write \
+	sys-kernel/dracut
 
 genkernel --no-clean --no-mountboot \
         --no-kernel-sources \
@@ -64,7 +80,7 @@ kernel_version="${kernel_filename#kernel-genkernel-*-}"
 
 touch /etc/ld.so.conf.d/empty
 
-export PATH="/tmp/dracut/:$PATH"
+export PATH="/tmp/live/dracut/:$PATH"
 
 dracut --verbose \
        --force \

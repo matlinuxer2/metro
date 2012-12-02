@@ -52,8 +52,9 @@ genkernel --no-clean --no-mountboot \
 	$opts_config \
 	kernel
 
-emerge --oneshot --autounmask-write sys-fs/aufs2
-emerge --oneshot --autounmask-write sys-fs/aufs2
+DRV_PKGS="sys-fs/aufs2 app-emulation/kqemu"
+emerge --oneshot --autounmask-write $DRV_PKGS
+emerge --oneshot --autounmask-write $DRV_PKGS
 
 genkernel --no-clean --no-mountboot \
 	--kerncache=/boot/$[target/name].tar.bz2 \
