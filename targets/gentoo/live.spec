@@ -1,5 +1,5 @@
-[collect ./stage/common.spec]
-[collect ./stage/stage3-derivative.spec]
+[collect ./source/stage3.spec]
+[collect ./target/stage4.spec]
 
 [section path/mirror]
 

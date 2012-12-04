@@ -1,6 +1,6 @@
-[collect ./stage/common.spec]
+[collect ./source/stage3.spec]
+[collect ./target/stage4.spec]
 [collect ./stage/capture/squashfs.spec]
-[collect ./stage/stage3-derivative.spec]
 
 [section path/mirror]
 
