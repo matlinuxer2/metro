@@ -1,9 +1,9 @@
 [collect ./source/stage3.spec]
 [collect ./target/stage4.spec]
 
-[section target]
+[section stage4]
 
-name: kernel-$[:subarch]-$[:build]-$[:version]
+target/name: kernel
 
 [section steps]
 unpack/post: [
