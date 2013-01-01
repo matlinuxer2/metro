@@ -5,6 +5,13 @@
 
 target/name: kernel
 
+[section path/mirror]
+
+target/basename: $[target/name].tar.bz2
+target/latest: $[target/name/latest].tar.bz2
+target/full_latest: $[target/name/full_latest].tar.bz2
+
+
 [section steps]
 unpack/post: [
 #!/bin/bash
