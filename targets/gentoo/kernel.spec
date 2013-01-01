@@ -90,7 +90,3 @@ then
 	die "Error creating tarball"
 fi
 ]
-
-[section portage]
-
-ROOT: /
