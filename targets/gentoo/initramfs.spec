@@ -1,13 +1,16 @@
 [collect ./source/stage3.spec]
 [collect ./target/stage4.spec]
 
+[section stage4]
+
+target/name: initramfs
+
 [section path/mirror]
 
-target: $[:source/subpath]/$[target/name].cpio.gz
+target/basename: $[target/name].cpio.gz
+target/latest: $[target/name/latest].cpio.gz
+target/full_latest: $[target/name/full_latest].cpio.gz
 
-[section target]
-
-name: initramfs-$[:subarch]-$[:build]-$[:version]
 
 [section steps]
 unpack/post: [

@@ -1,14 +1,16 @@
 [collect ./source/stage3.spec]
 [collect ./target/stage4.spec]
 [collect ./stage/capture/squashfs.spec]
+[section stage4]
+
+target/name: rootfs
 
 [section path/mirror]
 
-target: $[:source/subpath]/$[target/name].squashfs
+target/basename: $[target/name].squashfs
+target/latest: $[target/name/latest].squashfs
+target/full_latest: $[target/name/full_latest].squashfs
 
-[section target]
-
-name: rootfs-$[:subarch]-$[:build]-$[:version]
 
 [section steps]
 unpack/post: [
@@ -71,7 +73,3 @@ emerge $eopts --oneshot net-dialup/mingetty
 sed -i -e '/^c/s!agetty 38400!mingetty --autologin root --noclear!' /etc/inittab || exit 1
 
 ]
-
-[section portage]
-
-ROOT: /
