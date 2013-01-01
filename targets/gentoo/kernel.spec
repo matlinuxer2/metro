@@ -1,10 +1,6 @@
 [collect ./source/stage3.spec]
 [collect ./target/stage4.spec]
 
-[section path/mirror]
-
-target: $[:source/subpath]/$[target/name].tar.bz2
-
 [section target]
 
 name: kernel-$[:subarch]-$[:build]-$[:version]
