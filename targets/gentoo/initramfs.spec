@@ -33,7 +33,7 @@ if [ -d "$CHROOT_DIR" ];then
 	fi
 fi
 
-kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/build]-$[target/version].tar.bz2"
+kerncache="$[path/mirror/source/subpath]/$[target/build]-$[target/subarch]-kernel-$[target/version].tar.bz2"
 
 
 if [ -e "$kerncache" ]; then
