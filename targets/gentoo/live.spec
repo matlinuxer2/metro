@@ -1,13 +1,15 @@
 [collect ./source/stage3.spec]
 [collect ./target/stage4.spec]
 
+[section stage4]
+
+target/name: liveimg
+
 [section path/mirror]
 
-target: $[:source/subpath]/$[target/name]
-
-[section target]
-
-name: $[:subarch]-$[:build]-$[:version]
+target/basename: $[target/name].tar.$[target/compression]
+target/latest: $[target/name/latest].tar.$[target/compression]
+target/full_latest: $[target/name/full_latest].tar.$[target/compression]
 
 [section steps]
 unpack/post: [
@@ -97,7 +99,3 @@ bash
 echo "=============================================="
 
 ]
-
-[section portage]
-
-ROOT: /
