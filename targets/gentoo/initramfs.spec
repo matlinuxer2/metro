@@ -130,7 +130,3 @@ then
 fi
 
 ]
-
-[section portage]
-
-ROOT: /
