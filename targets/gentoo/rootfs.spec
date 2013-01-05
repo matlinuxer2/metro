@@ -18,26 +18,20 @@ unpack/post: [
 
 FROM_DIR="$[path/live_in_chroot]/"
 CHROOT_DIR="$[path/chroot]/"
-MIRROR_DIR="$[path/mirror/source/subpath]/"
+MIRROR_SRC_DIR="$[path/mirror]/$[path/mirror/source/subpath]"
+KERN_FILENAME="$[target/build]-$[target/subarch]-kernel-$[target/version].tar.bz2"
+kerncache="$MIRROR_SRC_DIR/$KERN_FILENAME"
 
-if [ -d "$CHROOT_DIR" ];then
-
-	if [ -d "$FROM_DIR" ]; then
+if [ -d "$CHROOT_DIR" -a -d "$FROM_DIR" ]; then
 		echo "Syncing live seeds from $FROM_DIR to $CHROOT_DIR ..."
 		rsync -avz "$FROM_DIR" "$CHROOT_DIR"
-	fi
-
-	if [ -d "$MIRROR_DIR" ]; then
-		echo "Retrieve done list..."
-		ls > $CHROOT_DIR/tmp/done.list
-	fi
 fi
 
-kerncache="$[path/mirror/source/subpath]/kernel-$[target/subarch]-$[target/build]-$[target/version].tar.bz2"
+
 
 if [ -e "$kerncache" ]; then
         echo "Coping kerncache $kerncache..."
-        cp  $kerncache $[path/chroot]/tmp/kerncache.tar.bz2
+        cp  $kerncache $CHROOT_DIR/tmp/kerncache.tar.bz2
 else
         echo "Required file $kerncache not found. ..."
 	exit 1

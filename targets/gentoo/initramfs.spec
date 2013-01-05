@@ -104,8 +104,7 @@ trap "die user interrupt - Removing incomplete template..." INT
 
 rm -rf /tmp/steps || die "Steps cleanup fail"
 outdir=`dirname $[path/mirror/target]`
-if [ ! -d $outdir ]
-then
+if [ ! -d $outdir ]; then
 	install -d $outdir || "Output path $outdir does not exist"
 fi
 
