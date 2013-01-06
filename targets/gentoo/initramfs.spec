@@ -57,7 +57,7 @@ emerge $eopts --getbinpkg=y --usepkg=y \
 	|| (bash ; exit 1 )
 
 ### To patch genkernel here
-vim -i NONE -e -X -c ':123 move 117' -c':wq' $(which genkernel)
+vim -i NONE -e -X -c ':123 move 117' -c':wq' /usr/bin/genkernel
 
 
 DRACUT_MODULES="dmsquash-live" \
