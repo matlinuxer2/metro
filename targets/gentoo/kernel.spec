@@ -42,8 +42,9 @@ dev-libs/libgcrypt static-libs
 sys-fs/aufs2 kernel-patch
 EOF
 
+emerge $eopts sys-kernel/gentoo-sources 
+
 emerge $eopts --getbinpkg=y --usepkg=y \
-      	sys-kernel/gentoo-sources \
         sys-kernel/genkernel \
 	|| (bash ; exit 1 )
 
