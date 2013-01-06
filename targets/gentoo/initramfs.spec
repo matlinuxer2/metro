@@ -54,13 +54,14 @@ EOF
 
 emerge $eopts --getbinpkg=y --usepkg=y \
         sys-kernel/genkernel \
-	|| (bash ; exit 1 )
+	|| ( exit 1 )
 
 ### To patch genkernel here
-vim -i NONE -e -X -c ':123 move 117' -c':wq' /usr/bin/genkernel
+vim -i NONE -e -X -c ':123 move 117' -c':wq' $(which genkernel)
 
 
 DRACUT_MODULES="dmsquash-live" \
+USE="device-mapper" \
 emerge $eopts --getbinpkg=y --usepkg=y --onlydeps --autounmask=y --autounmask-write \
 	sys-kernel/dracut
 
