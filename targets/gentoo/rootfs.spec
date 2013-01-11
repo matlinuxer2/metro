@@ -47,7 +47,7 @@ $[[steps/setup]]
 
 emerge $eopts --getbinpkg=y --usepkg=y \
         sys-kernel/genkernel \
-	|| (bash ; exit 1 )
+	|| ( exit 1 )
 
 ### To patch genkernel here
 vim -i NONE -e -X -c ':123 move 117' -c':wq' $(which genkernel)
@@ -60,7 +60,7 @@ genkernel --no-clean --no-mountboot \
 #export USE="$[portage/USE] bindist"
 emerge --update --autounmask=y --autounmask-write $eopts @mat \
 	       || emerge --update $eopts @mat \
-	       || ( bash ; exit 1 )
+	       || ( exit 1 )
 
 emerge $eopts --oneshot net-dialup/mingetty
 
