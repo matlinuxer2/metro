@@ -55,7 +55,7 @@ genkernel --no-clean --no-mountboot \
 	$opts_config \
 	kernel
 
-DRV_PKGS="sys-fs/aufs2 app-emulation/kqemu"
+DRV_PKGS="sys-fs/aufs2"
 emerge --oneshot --autounmask-write $DRV_PKGS
 emerge --oneshot --autounmask-write $DRV_PKGS
 
