@@ -63,6 +63,8 @@ EOF
 
 export buildpkgs="$(python /tmp/build.py)"
 export BOOTSTRAP_USE="$(portageq envvar BOOTSTRAP_USE)"
+# Set at least one PYTHON_ABIS flag to satisfy REQUIRED_USE of sys-apps/portage.
+export PYTHON_ABIS="$(portageq envvar PYTHON_ABIS | sed -e "s/.* //")"
 export USE="-* bindist build xml ${BOOTSTRAP_USE} ssl threads"
 export FEATURES="$FEATURES nodoc noman noinfo"
 
