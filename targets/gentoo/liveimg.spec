@@ -89,17 +89,15 @@ fi
 
 function launch_scripts(){
 if [ "$CUR_STATE" = "chroot_run" ];then
-	INITRUN="/tmp/live/run_in_chroot"
-elif [ "$CUR_STATE" = "unpack_post" ];then
-	INITRUN="$CHROOT_DIR/tmp/live/for_unpack_post"
-elif [ "$CUR_STATE" = "capture" ];then
-	INITRUN="$CHROOT_DIR/tmp/live/for_capture"
+	INITRUN="/tmp/live/run_hooks"
+else
+	INITRUN="$CHROOT_DIR/tmp/live/run_hooks"
 fi
 
 	if [ -f $INITRUN ]; then
 		echo "Start scripts >>>$INITRUN<<<..."
 		chmod +x $INITRUN
-		$INITRUN 
+		$INITRUN "$CUR_STATE"
 	fi
 }
 
