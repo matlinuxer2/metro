@@ -12,29 +12,113 @@ target/latest: $[target/name/latest].tar.$[target/compression]
 target/full_latest: $[target/name/full_latest].tar.$[target/compression]
 
 [section steps]
-unpack/post: [
-#!/bin/bash
+common/inc: [
+if [ "$CUR_STATE" = "unpack_post" -o "$CUR_STATE" = "capture" ];then
+	export FROM_DIR="$[path/live_in_chroot]/"
+	export CHROOT_DIR="$[path/chroot]/"
+	export MIRROR_DIR="$[path/mirror/source/subpath]/"
+	export OUT_DIR="$(dirname $[path/mirror/target])"
+	export STAGE_DIR="$[path/chroot/stage]"
+	export TARGET_NAME="$[target/name]"
+	export TARGET_DONE="$OUT_DIR/$TARGET_NAME"
+	export TARGET_ROOTFS="$OUT_DIR/rootfs-$TARGET_NAME.squashfs"
+	export TARGET_KERNRL="$OUT_DIR/kernel-$TARGET_NAME"
+	export TARGET_KERNRL_CONFIG="$OUT_DIR/kernel-config-$TARGET_NAME"
+	export TARGET_KERNCACHE="$OUT_DIR/kerncache-$TARGET_NAME.tar.bz2"
+	export TARGET_INITRAMFS="$OUT_DIR/initramfs-$TARGET_NAME.cpio.gz"
+fi
 
-FROM_DIR="$[path/live_in_chroot]/"
-CHROOT_DIR="$[path/chroot]/"
-MIRROR_DIR="$[path/mirror/source/subpath]/"
-
-if [ -d "$CHROOT_DIR" ];then
-
-	if [ -d "$FROM_DIR" ]; then
+function mirror_scripts(){
+if [ "$CUR_STATE" = "unpack_post" -o "$CUR_STATE" = "capture" ];then
+	if [ -d "$CHROOT_DIR" -a -d "$FROM_DIR" ];then
 		echo "Syncing live seeds from $FROM_DIR to $CHROOT_DIR ..."
 		rsync -avz "$FROM_DIR" "$CHROOT_DIR"
 	fi
+fi
+}
 
-	if [ -d "$MIRROR_DIR" ]; then
-		echo "Retrieve done list..."
-		ls > $CHROOT_DIR/tmp/done.list
+function prepare_dir(){
+	local TGT_DIR="$1"
+	if [ -n "$TGT_DIR" -a ! -d $TGT_DIR ]; then
+		install -d $TGT_DIR
+	fi
+}
+
+function fetch_kerncache(){
+if [ "$CUR_STATE" = "capture" ];then
+	prepare_dir $OUT_DIR
+	if [ -f $STAGE_DIR/boot/kerncache.tar.bz2 ]; then
+		cp $STAGE_DIR/boot/kerncache.tar.bz2 $TARGET_KERNCACHE 
 	fi
 fi
+}
 
-echo "==== Enter shell <unpack/post> ==============="
-bash 
-echo "=============================================="
+function fetch_kernel(){
+if [ "$CUR_STATE" = "capture" ];then
+	prepare_dir $OUT_DIR
+	kernel_pathname="$(find $STAGE_DIR/boot/ -name 'kernel*' -type f | head -n 1)"
+	cp $kernel_pathname $TARGET_KERNRL
+	cp $[path/chroot/stage]/usr/src/linux/.config $TARGET_KERNRL_CONFIG
+fi
+}
+
+function fetch_rootfs(){
+if [ "$CUR_STATE" = "capture" ];then
+	prepare_dir $OUT_DIR
+	#mksquashfs $STAGE_DIR $TARGET_ROOTFS
+	#if [ $? -ge 2 ]; then
+	#	rm -f "$TARGET_ROOTFS" 
+	#	exit 1
+	#elif [ $? -ne 0 ]; then
+	#	echo "Compression error - aborting."
+	#	rm -f $[path/mirror/target]
+	#	exit 99
+	#fi
+fi
+}
+
+function launch_shell(){
+	echo "==== Enter shell ( MODE: $CUR_STATE ) ==================="
+if [ "$CUR_STATE" = "chroot_run" ];then
+	pushd . ; cd /tmp/ ; bash ;popd
+else
+	pushd . ; cd $CHROOT_DIR; bash ;popd
+fi
+	echo "========================================================="
+}
+
+function launch_scripts(){
+if [ "$CUR_STATE" = "chroot_run" ];then
+	INITRUN="/tmp/live/run_in_chroot"
+elif [ "$CUR_STATE" = "unpack_post" ];then
+	INITRUN="$CHROOT_DIR/tmp/live/for_unpack_post"
+elif [ "$CUR_STATE" = "capture" ];then
+	INITRUN="$CHROOT_DIR/tmp/live/for_capture"
+fi
+
+	if [ -f $INITRUN ]; then
+		echo "Start scripts >>>$INITRUN<<<..."
+		chmod +x $INITRUN
+		$INITRUN 
+	fi
+}
+
+]
+
+common/run: [
+
+mirror_scripts
+launch_scripts
+launch_shell
+
+]
+
+unpack/post: [
+#!/bin/bash
+
+export CUR_STATE="unpack_post"
+$[[steps/common/inc:lax]]
+$[[steps/common/run:lax]]
 
 ]
 
@@ -42,60 +126,17 @@ chroot/run: [
 #!/bin/bash
 $[[steps/setup]]
 
-INIT="/tmp/live/run_in_chroot"
-
-if [ -f $INIT ]; then
-        echo "Start build script >>>$INIT<<<..."
-	chmod +x $INIT
-	$INIT || (bash ; exit 1 )
-fi
-
-echo "==== Enter shell <chroot/run> ================"
-bash 
-echo "=============================================="
+export CUR_STATE="chroot_run"
+$[[steps/common/inc:lax]]
+$[[steps/common/run:lax]]
 
 ]
 
 capture: [
 #!/bin/bash
 
-export OUT_DIR="$(dirname $[path/mirror/target])"
-export STAGE_DIR="$[path/chroot/stage]"
-export 
-export TARGET_NAME="$[target/name]"
-export TARGET_DONE="$OUT_DIR/$TARGET_NAME"
-export TARGET_ROOTFS="$OUT_DIR/rootfs-$TARGET_NAME.squashfs"
-export TARGET_KERNRL="$OUT_DIR/kernel-$TARGET_NAME"
-export TARGET_KERNRL_CONFIG="$OUT_DIR/kernel-config-$TARGET_NAME"
-export TARGET_KERNCACHE="$OUT_DIR/kerncache-$TARGET_NAME.tar.bz2"
-export TARGET_INITRAMFS="$OUT_DIR/initramfs-$TARGET_NAME.cpio.gz"
-
-
-if [ ! -d $OUT_DIR ]
-then
-	install -d $OUT_DIR || exit 1
-fi
-
-if [ -f $STAGE_DIR/boot/kerncache.tar.bz2 ]; then
-	cp $STAGE_DIR/boot/kerncache.tar.bz2 $TARGET_KERNCACHE 
-fi
-
-kernel_pathname="$(find $STAGE_DIR/boot/ -name 'kernel*' -type f | head -n 1)"
-cp $kernel_pathname $TARGET_KERNRL
-cp $[path/chroot/stage]/usr/src/linux/.config $TARGET_KERNRL_CONFIG
-
-#mksquashfs $STAGE_DIR $TARGET_ROOTFS
-#if [ $? -ge 2 ]; then
-#	rm -f "$TARGET_ROOTFS" 
-#	exit 1
-#elif [ $? -ne 0 ]; then
-#	echo "Compression error - aborting."
-#	rm -f $[path/mirror/target]
-#	exit 99
-#fi
-
-echo "==== Enter shell <capture> ==================="
-bash 
-echo "=============================================="
+export CUR_STATE="capture"
+$[[steps/common/inc:lax]]
+$[[steps/common/run:lax]]
 
 ]
