@@ -82,7 +82,7 @@ function launch_shell(){
 if [ "$CUR_STATE" = "chroot_run" ];then
 	pushd . ; cd /tmp/ ; bash ;popd
 else
-	pushd . ; cd $CHROOT_DIR; bash ;popd
+	pushd . ; cd $CHROOT_DIR/tmp/ ; bash ;popd
 fi
 	echo "========================================================="
 }
