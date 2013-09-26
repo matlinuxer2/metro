@@ -58,7 +58,7 @@ if [ "$CUR_STATE" = "capture" ];then
 	prepare_dir $OUT_DIR
 	kernel_pathname="$(find $STAGE_DIR/boot/ -name 'kernel*' -type f | head -n 1)"
 	cp $kernel_pathname $TARGET_KERNRL
-	cp $[path/chroot/stage]/usr/src/linux/.config $TARGET_KERNRL_CONFIG
+	cp $STAGE_DIR/usr/src/linux/.config $TARGET_KERNRL_CONFIG
 fi
 }
 
