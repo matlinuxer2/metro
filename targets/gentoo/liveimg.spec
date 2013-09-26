@@ -37,46 +37,6 @@ if [ "$CUR_STATE" = "unpack_post" -o "$CUR_STATE" = "capture" ];then
 fi
 }
 
-function prepare_dir(){
-	local TGT_DIR="$1"
-	if [ -n "$TGT_DIR" -a ! -d $TGT_DIR ]; then
-		install -d $TGT_DIR
-	fi
-}
-
-function fetch_kerncache(){
-if [ "$CUR_STATE" = "capture" ];then
-	prepare_dir $OUT_DIR
-	if [ -f $STAGE_DIR/boot/kerncache.tar.bz2 ]; then
-		cp $STAGE_DIR/boot/kerncache.tar.bz2 $TARGET_KERNCACHE 
-	fi
-fi
-}
-
-function fetch_kernel(){
-if [ "$CUR_STATE" = "capture" ];then
-	prepare_dir $OUT_DIR
-	kernel_pathname="$(find $STAGE_DIR/boot/ -name 'kernel*' -type f | head -n 1)"
-	cp $kernel_pathname $TARGET_KERNRL
-	cp $STAGE_DIR/usr/src/linux/.config $TARGET_KERNRL_CONFIG
-fi
-}
-
-function fetch_rootfs(){
-if [ "$CUR_STATE" = "capture" ];then
-	prepare_dir $OUT_DIR
-	#mksquashfs $STAGE_DIR $TARGET_ROOTFS
-	#if [ $? -ge 2 ]; then
-	#	rm -f "$TARGET_ROOTFS" 
-	#	exit 1
-	#elif [ $? -ne 0 ]; then
-	#	echo "Compression error - aborting."
-	#	rm -f $[path/mirror/target]
-	#	exit 99
-	#fi
-fi
-}
-
 function launch_shell(){
 	echo "==== Enter shell ( MODE: $CUR_STATE ) ==================="
 if [ "$CUR_STATE" = "chroot_run" ];then
