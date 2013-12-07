@@ -31,8 +31,22 @@ fi
 function mirror_scripts(){
 if [ "$CUR_STATE" = "unpack_post" -o "$CUR_STATE" = "capture" ];then
 	if [ -d "$CHROOT_DIR" -a -d "$FROM_DIR" ];then
-		echo "Syncing live seeds from $FROM_DIR to $CHROOT_DIR ..."
+		echo "Syncing live seeds $FROM_DIR ---> $CHROOT_DIR ..."
 		rsync -avz "$FROM_DIR" "$CHROOT_DIR"
+	fi
+fi
+}
+
+function feedback_scripts(){
+if [ "$CUR_STATE" = "unpack_post" -o "$CUR_STATE" = "capture" ];then
+	if [ -d "$CHROOT_DIR" -a -d "$FROM_DIR" ];then
+		echo "Syncing live seeds $FROM_DIR <--- $CHROOT_DIR ..."
+		pushd . ; cd "$FROM_DIR"
+		for ff in `find . -type f`
+		do
+			cp --update -v "$CHROOT_DIR/$ff" "$FROM_DIR/$ff"
+		done
+		popd
 	fi
 fi
 }
@@ -68,6 +82,7 @@ common/run: [
 mirror_scripts
 launch_scripts
 launch_shell
+feedback_scripts
 
 ]
 
