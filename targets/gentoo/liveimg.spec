@@ -29,11 +29,19 @@ if [ "$CUR_STATE" = "unpack_post" -o "$CUR_STATE" = "capture" ];then
 fi
 
 function mirror_scripts(){
+if [ "$CUR_STATE" = "capture" ];then
+	feedback_scripts
+fi
+
 if [ "$CUR_STATE" = "unpack_post" -o "$CUR_STATE" = "capture" ];then
 	if [ -d "$CHROOT_DIR" -a -d "$FROM_DIR" ];then
 		echo "Syncing live seeds $FROM_DIR ---> $CHROOT_DIR ..."
 		rsync -avz "$FROM_DIR" "$CHROOT_DIR"
 	fi
+fi
+
+if [ "$CUR_STATE" = "unpack_post" ];then
+	feedback_scripts
 fi
 }
 
