@@ -1,84 +1,44 @@
 #!/bin/bash
+source /etc/profile
 #preserve group permissions:
 umask 002
-
-if [ "$1" == "--pretend" ]; then
-	PRETEND=yes
-else
-	PRETEND=no
+SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+cd $SCRIPT_DIR
+if [ ! -e ./buildrepo ]; then
+	echo "can't find buildrepo. Path is " `cwd`
+	exit 1
 fi
-
-kcfile="/root/.keychain/$(hostname)-sh"
-[ -e "$kcfile" ] && . "$kcfile"
-dobuild() {
-	local build=$1
-	local subarch=$2
-	# buildrepo returns True for this argument if last build had a stage1 built too (non-freshen), otherwise False
-	local full=$3
-	local buildtype=full
-	if [ "$full" = "True" ]; then
-		buildtype="freshen"
-	fi
-	if [ "$subarch" = "corei7" ]; then
-		buildtype="$buildtype+openvz"
-	fi
-	if [ "$subarch" = "corei7-pure64" ]; then
-		buildtype="$buildtype+openvz"
-	fi	
-	if [ "$subarch" = "core2_64" ]; then
-		buildtype="$buildtype+openvz"
-	fi
-	if [ "$subarch" = "generic_64" ]; then
-		buildtype="$buildtype+openvz"
-	fi
-	if [ "$subarch" = "generic_64-pure64" ]; then
-		buildtype="$buildtype+openvz"
-	fi	
-	if [ "$subarch" = "generic_32" ]; then
-		buildtype="$buildtype+openvz"
-	fi
-	if [ "$subarch" = "core2_32" ]; then
-		buildtype="$buildtype+openvz"
-	fi
-	if [ "$build" != "" ] && [ "$subarch" != "" ] && [ "$buildtype" != "" ]; then
-		echo "Building $build $subarch $buildtype"
-		if [ "$PRETEND" = "yes" ]; then
-			echo /root/git/metro/scripts/ezbuild.sh $build $subarch $buildtype
-		else
-			/root/git/metro/scripts/ezbuild.sh $build $subarch $buildtype
-			if [ $? -ne 0 ]; then
-				return $EXIT_CODE_ON_SUCCESS
-			else
-				return $EXIT_CODE_ON_FAL
-			fi
-		fi
-	else
-		echo "Couldn't determine build, subarch and build type. Exiting."
-		exit 1
-	fi
-}
-( cd /root/git/metro; git pull )
-export METRO_BUILDS="funtoo-current funtoo-stable"
-export STALE_DAYS=5
-export SKIP_SUBARCH="amd64-k10"
-# Allow tweaking for cron to get the emails you want. These values will be returned only
-# after a non-pretend dobuild() run.
-export EXIT_CODE_ON_SUCCESS=1
-export EXIT_CODE_ON_FAIL=2
-cd /var/tmp
-a=$(/root/git/metro/scripts/buildrepo nextbuild)
-if [ "$PRETEND" = "yes" ]; then
-	echo $a
+a=$(./buildrepo nextbuild)
+if [ $? -eq 2 ]; then
+	# error
+	echo "buildrepo error: (re-doing to get full output):"
+	./buildrepo nextbuild
+	exit 1
 fi
 if [ "$a" = "" ]; then
 	echo "Builds are current."
 	# we are current
 	exit 0
-elif [ $? -eq 2 ]; then
-	# error
-	echo "buildrepo error: (re-doing to get full output):"
-	/root/git/metro/scripts/buildrepo nextbuild
-	exit 1
+else
+	# evaluate output of buildrepo to get things defined as env vars:
+	eval $a
+	if [ -z "$build" ]; then
+		echo "build not defined. Call to buildrepo probably failed. Exiting."
+		exit 1
+	fi
+	if [ "$1" == "--pretend" ]; then
+		cmd="echo ../metro"
+	else
+		cmd="../metro"
+	fi
+	echo -n "Building $build for $subarch ($target) with date $nextdate"
+	if [ -n "$extras" ]; then
+		# convert into metro argument:
+		extras="multi/extras: $extras"
+		echo " (extras: $extras)"
+	else
+		echo
+	fi
+	$cmd -d multi: yes target/build: $build target/arch_desc: $arch_desc target/subarch: $subarch target/version: $nextdate multi/mode: $target $extras
+	exit $?
 fi
-# otherwise, build what needs to be built:
-dobuild $a

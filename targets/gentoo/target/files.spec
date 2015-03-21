@@ -22,6 +22,12 @@ CFLAGS="$[portage/CFLAGS:zap]"
 CXXFLAGS="$[portage/CFLAGS:zap]"
 LDFLAGS="$[portage/LDFLAGS:zap]"
 USE="$[portage/USE:zap]"
+CHOST="$[portage/CHOST_OVERRIDE:zap]"
+]
+
+make.conf.subarchprofile: [
+FEATURES="$[portage/FEATURES:zap]"
+USE="$[portage/USE:zap]"
 ]
 
 locale.gen: [
@@ -48,10 +54,10 @@ en_US.UTF-8 UTF-8
 proxyenv: [
 <?python
 for x in ["http_proxy","ftp_proxy","RSYNC_PROXY"]:
-	if os.environ.has_key(x):
-		print x+"=\""+os.environ[x]+"\""
+	if x in os.environ:
+		print(x+"=\""+os.environ[x]+"\"")
 	else:
-		print "# "+x+" is not set"
+		print("# "+x+" is not set")
 ?>
 ]
 

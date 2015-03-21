@@ -16,8 +16,10 @@ then
 	eselect python set $a
 fi
 
-emerge --oneshot portage || exit 1
+emerge $eopts --oneshot portage || exit 1
 export USE="$[portage/USE] bindist"
+# handle perl upgrades
+perl-cleaner --modules || exit 1
 emerge $eopts -e system || exit 1
 
 # zap the world file and emerge packages

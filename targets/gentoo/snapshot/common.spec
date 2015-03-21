@@ -11,8 +11,8 @@ class: snapshot
 [section path/mirror]
 
 # "latest" symlink:
-link: $[]/$[:snapshot/subpath]/$[portage/name]-$[:link/suffix].tar.$[target/compression]
-link/dest: $[portage/name/full].tar.$[target/compression]
+link: $[]/$[:snapshot/subpath]/$[portage/name]-$[:link/suffix].tar.$[snapshot/compression]
+link/dest: $[portage/name/full].tar.$[snapshot/compression]
 
 [section trigger]
 
@@ -59,7 +59,11 @@ gz)
 	gzip -9 $tarout || die "Snapshot gzip failure"
 	;;
 xz)
-	xz $tarout || die "Snapshot xz failure"
+	if [ -e /usr/bin/pxz ]; then
+		/usr/bin/pxz $tarout || die "Snapshot pxz failure"
+	else
+		xz $tarout || die "Snapshot xz failure"
+	fi
 	;;
 *)
 	echo "Unrecognized compression format $[snapshot/compression] specified for snapshot."

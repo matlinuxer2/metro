@@ -68,7 +68,11 @@ fi
 FEATURES="$FEATURES -sandbox"
 install -d /etc/portage
 # the quotes below prevent variable expansion of anything inside make.conf
-if [ "$[profile/format]" = "new" ]; then
+if [ -n "$[profile/subarch]" ]; then
+cat > /etc/portage/make.conf << "EOF"
+$[[files/make.conf.subarchprofile]]
+EOF
+elif [ "$[profile/format]" = "new" ]; then
 cat > /etc/portage/make.conf << "EOF"
 $[[files/make.conf.newprofile]]
 EOF
@@ -107,7 +111,13 @@ $[[probe/setup:lax]]
 fi
 ]
 
-#[option parse/strict]
+clean: [
+#!/bin/bash
+# We do this in steps/clean instead of steps/chroot/clean because we have package
+# cache bind-mount in /var/tmp. So we need to ensure it's unmounted first.
+rm -rf $[path/chroot/stage]$[portage/ROOT]/var/tmp/*
+]
+
 
 [section steps/chroot]
 
@@ -121,6 +131,7 @@ if [ "$pf" = "new" ]; then
 	install -d /etc/portage/make.profile
 	cat > /etc/portage/make.profile/parent << EOF
 $[profile/arch:zap]
+$[profile/subarch:zap]
 $[profile/build:zap]
 $[profile/flavor:zap]
 EOF
@@ -215,8 +226,8 @@ fi
 # exist in /tmp inside the chroot. So after this cleanup, any execution inside the chroot
 # won't work. This is normally okay.
 
-rm -rf $ROOT/var/tmp/* $ROOT/tmp/* $ROOT/root/* $ROOT/usr/portage $ROOT/var/log/* || exit 5
-rm -rf $ROOT/var/cache/edb/dep/*
+rm -rf $ROOT/tmp/* $ROOT/root/* $ROOT/usr/portage $ROOT/var/log/* || exit 5
+rm -rf $ROOT/var/cache/*
 rm -f $ROOT/etc/.pwd.lock
 for x in passwd group shadow
 do
@@ -246,6 +257,7 @@ fi
 # locale-archive can be ~81 MB; this should shrink it to 2MB.
 rm -f /usr/lib*/locale/locale-archive
 locale-gen
+rm -rf $ROOT/run/*
 ]
 
 postclean: [

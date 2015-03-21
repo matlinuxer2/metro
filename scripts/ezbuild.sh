@@ -4,7 +4,8 @@
 # have proxy settings. So let's make sure we have a good Gentoo environment...
 
 source /etc/profile
-
+SCRIPT_DIR=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+cd $SCRIPT_DIR
 die() {
 	echo $*
 	exit 1
@@ -22,56 +23,44 @@ do_help() {
   Metro Automation Engine Script
   by Daniel Robbins (drobbins@funtoo.org)
 
-  Usage: $0 build arch [ full|freshen|quick [date] ]
+  Usage: $0 build arch subarch [ full|freshen|quick [date] ]
   Examples:
-  	# $0 funtoo-stable generic_64
-	# $0 funtoo-current core2_32 freshen
-	# $0 gentoo pentium4 full 2009.01.03
+  	# $0 funtoo-stable x86-64bit generic_64
+	# $0 funtoo-current x86-32bit core2_32 freshen
 EOF
 }
 
-if [ "$METRO" = "" ]
-then
-	METRO=/usr/bin/metro
-fi
-if ! [ -e "$METRO" ] && [ -x "$(pwd)/metro" ]
-then
-	METRO="$(pwd)/metro"
-fi
-if [ ! -e $METRO ]
-then
-	die "Metro is required for build.sh to run"
-fi
-
-if [ $# -lt 2 ] || [ $# -gt 4 ]
+if [ $# -lt 3 ] || [ $# -gt 5 ]
 then
 	do_help
-	die "This script requires two, three or four arguments"
+	die "This script requires three, four or five arguments"
 fi
 
 BUILD="$1"
 if [ "$2" == "snapshot" ]
 then
 	[ "$#" -ge "3" ] && VERS=$3 || VERS=`date +%Y-%m-%d`
-	run $METRO target/build: $BUILD target: snapshot target/version: $VERS || die "snapshot failure"
+	run ../metro target/build: $BUILD target: snapshot target/version: $VERS || die "snapshot failure"
 else
-	SUBARCH="$2"
+	ARCH="$2"
+	SUBARCH="$3"
 	extras=""
-	if [ "$#" -ge "3" ]
+	if [ "$#" -ge "4" ]
 	then
-		MODE=$3
-		modesp="${3##*+}"
+		MODE=$4
+		modesp="${4##*+}"
 		if [ "$modesp" != "$MODE" ]; then
 			extras=$modesp
-			MODE="${3%%+*}"
+			MODE="${4%%+*}"
 		fi
 	else
 		MODE=full
 	fi
-	[ "$#" -ge "4" ] && VERS=$4 || VERS=`date +%Y-%m-%d`
+	[ "$#" -ge "5" ] && VERS=$5 || VERS=`date +%Y-%m-%d`
 	if [ -n "$extras" ]; then
 		extras="multi/extras: $extras"
 	fi
-	run $METRO -d multi: yes target/build: $BUILD target/subarch: $SUBARCH target/version: $VERS multi/mode: $MODE $extras || die "build failure"
+	run ../metro -d multi: yes target/build: $BUILD target/arch_desc: $ARCH target/subarch: $SUBARCH target/version: $VERS multi/mode: $MODE $extras || die "build failure"
+	exit $?
 fi
 

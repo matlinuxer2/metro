@@ -48,14 +48,20 @@ for b in buildpkgs: print(b)
 chroot/run: [
 #!/bin/bash
 $[[steps/setup]]
-# upgrade portage on stage3 if necessary, before we begin:
+export ORIG_PKGDIR=$PKGDIR
+export PKGDIR=$ORIG_PKGDIR/initial_root
+# upgrade portage, if necessary, before we begin:
 emerge -u sys-apps/portage || die
 
-# update python if it is available
+# update python
 emerge -u python || die 
 # switch to correct python
 eselect python set python$[version/python] || die
-python-updater || die
+
+# FL-1398 update perl before we begin and try to update perl modules, if any installed/or will be installed.
+emerge -u --nodeps $eopts perl || die
+emerge $eopts -uDN world || die
+perl-cleaner --all -- $eopts || die
 
 cat > /tmp/build.py << "EOF"
 $[[files/pythonjunk]]
@@ -84,6 +90,7 @@ else
 fi
 
 export ROOT="$[portage/ROOT]"
+export PKGDIR=$ORIG_PKGDIR/new_root
 install -d ${ROOT}
 
 # It's important to merge baselayout first so it can set perms on key dirs
