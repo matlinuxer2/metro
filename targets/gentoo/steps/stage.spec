@@ -1,3 +1,5 @@
+[collect ./epro.spec]
+
 [section steps]
 
 #[option parse/lax]
@@ -56,9 +58,13 @@ then
 		fi
 	fi
 fi
+$[[steps/epro_setup]]
 if [ -e /var/tmp/cache/package ]
 then
 	export PKGDIR=/var/tmp/cache/package
+	if [ -n "$toolchain_version" ]; then
+		export PKGDIR="$PKGDIR/$toolchain_version"
+	fi
 	eopts="$[emerge/options] --usepkg"
 	export FEATURES="$FEATURES buildpkg"
 else

@@ -2,6 +2,7 @@
 
 import os, sys, subprocess, time, pwd, grp
 from importlib import import_module
+import json
 
 def ismount(path):
 	"enhanced to handle bind mounts"
@@ -83,7 +84,7 @@ class CommandRunner(object):
 				self.logging = False
 				self.run(["install", "-o", self.settings["path/mirror/owner"], "-g", self.settings["path/mirror/group"], "-m", self.settings["path/mirror/dirmode"], "-d", os.path.dirname(self.fname)], {})
 				self.logging = True
-			self.cmdout = open(self.fname,"w")
+			self.cmdout = open(self.fname,"w+")
 			# set logfile ownership:
 			os.chown(self.fname, pwd.getpwnam(self.settings["path/mirror/owner"]).pw_uid, grp.getgrnam(self.settings["path/mirror/group"]).gr_gid)
 			sys.stdout.write("Logging output to %s.\n" % self.fname)
@@ -91,9 +92,10 @@ class CommandRunner(object):
 	def mesg(self, msg):
 		if self.logging:
 			self.cmdout.write(msg + "\n")
+			self.cmdout.flush()
 		sys.stdout.write(msg + "\n")
 
-	def run(self, cmdargs, env):
+	def run(self, cmdargs, env, error_scan=False):
 		self.mesg("Running command: %s (env %s) " % ( cmdargs,env ))
 		try:
 			if self.logging:
@@ -104,10 +106,33 @@ class CommandRunner(object):
 		except KeyboardInterrupt:
 			cmd.terminate()
 			self.mesg("Interrupted via keyboard!")
-			return 1
+			raise
 		else:
 			if exitcode != 0:
 				self.mesg("Command exited with return code %s" % exitcode)
+				if error_scan and self.logging:
+					# scan log for errors -- and extract them!
+					self.mesg("Attempting to extract failed ebuild information...")
+					if self.cmdout:
+						self.cmdout.flush()
+					s, out = subprocess.getstatusoutput('cat %s | grep "^ \* ERROR: " | sort -u | sed -e \'s/^ \\* ERROR: \\(.*\\) failed (\\(.*\\) phase).*/\\1 \\2/g\'' % self.fname)
+					if s == 0:
+						errors = []
+						for line in out.split('\n'):
+							print("Processing line",line)
+							parts = line.split()
+							if len(parts) != 2:
+								# not what we're looking for
+								continue
+							if len(parts[0].split("/")) != 2:
+								continue
+							errors.append({"ebuild" : parts[0], "phase" : parts[1]})
+						if len(errors):
+							fname = self.settings["path/mirror/target/path"] + "/log/errors.json"
+							self.mesg("Detected failed ebuilds... writing to %s." % fname)
+							a = open(fname,"w")
+							a.write(json.dumps(errors, indent=4))
+							a.close()
 				return exitcode
 			return 0
 
@@ -151,13 +176,30 @@ class stampFile(object):
 			return False
 		return True
 
-class lockFile(stampFile):
-
-	"Class to create lock files; used for tracking in-progress metro builds."
+class fakeLockFile(stampFile):
 
 	def __init__(self,path):
 		stampFile.__init__(self,path)
 		self.created = False
+
+	def unlink(self):
+		pass
+
+	def create(self):
+		self.created = True
+
+	def exists(self):
+		return False
+
+	def unlink(self):
+		pass
+
+	def getFileContents(self):
+		return ""
+
+class lockFile(fakeLockFile):
+
+	"Class to create lock files; used for tracking in-progress metro builds."
 
 	def unlink(self):
 		"only unlink if *we* created the file. Otherwise leave alone."
@@ -205,6 +247,7 @@ class lockFile(stampFile):
 
 	def getFileContents(self):
 		return(str(os.getpid()))
+
 
 class countFile(stampFile):
 

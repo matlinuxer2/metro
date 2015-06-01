@@ -100,7 +100,7 @@ class Metro:
 			sys.exit(0)
 
 		# Step 6: Create list of targets to run, checking whether "multi" mode is enabled
-		if settings["multi"] == "yes":
+		if "multi" in settings and settings["multi"] == "yes":
 			targetlist = settings["multi/targets"].split()
 		else:
 			targetlist = [settings["target"]]
@@ -116,6 +116,15 @@ class Metro:
 			if key in opts:
 				result = value
 		return result
+
+	def qa_hook(self,settings):
+		if not "qa/type" in settings or not settings["qa/type"] == "jira":
+			return
+		jira_url = settings["qa/url"]
+		jira_user = settings["qa/username"]
+		jira_pass = settings["qa/password"]
+		myhook = JIRAHook(jira_url,jira_user,jira_pass,settings)
+		myhook.run()
 
 	@staticmethod
 	def dump_settings(settings):
@@ -162,16 +171,17 @@ class Metro:
 				if not self.multi_ts.create():
 					print("Could not create multi-target lock file %s" % self.multi_ts.path)
 					sys.exit(1)
-
+		current_target = None
 		for targetname in targetlist:
-
+			current_target = targetname
 			# We start by grabbing settings for this target:
-			
+
 			settings = self.setup.getSettings(self.metro_args,{"target": targetname})
 
 			# Now, we move to defining lockfiles, and logging setup:
-					
 			if targetname == "snapshot":
+				if settings["release/type"] != "official":
+					continue
 				tsfn = targ = settings["path/mirror/snapshot"]
 				tsfn = os.path.join(os.path.dirname(tsfn), "." + os.path.basename(tsfn) + "_progress")
 				cr = CommandRunner(settings, logging=False)
@@ -186,16 +196,22 @@ class Metro:
 
 			cr.mesg("Running target %s with class %s" % (targetname, settings["target/class"]))
 
-			#Let's see if our target exists. Should we replace it? Or should we just skip it?
-
-			if "metro/options" in settings and "replace" in settings["metro/options"].split():
-				if os.path.exists(targ):
-					cr.mesg("Removing existing file %s..." % targ)
-					target.cmd(self.cmds["rm"] + " -f " + targ)
-			elif os.path.exists(targ):
-				cr.mesg("File %s already exists - skipping..." % targ)
-				target.run_script("trigger/ok/run", optional=True)
-				continue
+			if settings["release/type"] == "official":
+				#Let's see if our target exists. Should we replace it? Or should we just skip it?
+				if "metro/options" in settings and "replace" in settings["metro/options"].split():
+					if os.path.exists(targ):
+						cr.mesg("Removing existing file %s..." % targ)
+						target.cmd(self.cmds["rm"] + " -f " + targ)
+				elif os.path.exists(targ):
+					cr.mesg("File %s already exists - skipping..." % targ)
+					target.run_script("trigger/ok/run", optional=True)
+					continue
+			else:
+				# for QA builds, if a "status" file exists in the target path, this means we've already run.
+				# Don't run again.
+				if os.path.exists(settings["path/mirror/target/path"]+"/status"):
+					cr.mesg("Status file already exists for target - skipping...")
+					continue
 
 			# Okay, we need to build our target. Let's create an "in progress" lock file:
 
@@ -205,6 +221,7 @@ class Metro:
 			self.ts = lockFile(tsfn)
 			abort = False
 			error = False
+			user_abort = False
 			try:
 				if self.ts.exists():
 					if targetname == "snapshot":
@@ -247,7 +264,7 @@ class Metro:
 					self.ts.unlink()
 			except KeyboardInterrupt:
 				cr.mesg("Target %s aborted due to user interrupt (ctrl-C)" % targetname)
-				abort = True
+				abort = user_abort = True
 				if self.ts != None:
 					self.ts.unlink()
 				# break out of multi-target loop so we can exit:
@@ -257,17 +274,35 @@ class Metro:
 		if self.ts != None:
 			self.ts.unlink()
 
+		official = initial_settings["release/type"] == "official"
 		failcnt_fn = initial_settings["path/mirror/target/control"] + "/.failcount"
+		status_fn  = initial_settings["path/mirror/target/path"] + "/status"
 		failcnt = countFile(failcnt_fn)
+			
+		# So we can grab this in the qa_hook:
+		initial_settings["target"] = current_target
+		initial_settings["success"] = "no" if error else "yes"
 
 		if error:
-			print("Incrementing failcount.")
-			# increment failcount - we record consecutive fails
-			failcnt.increment()
-		else:
-			print("Removing failcount.")
-			# we didn't fail - remove the fail counter if it exists:
-			failcnt.unlink()
+			if official:
+				print("Incrementing failcount.")
+				# increment failcount - we record consecutive fails
+				failcnt.increment()
+			sf = open(status_fn,"w")
+			sf.write("fail")
+			sf.close()
+			if error and not user_abort:
+				# don't run failure QA hook if user aborted it.
+				self.qa_hook(initial_settings)
+		elif not user_abort:
+			if official:
+				print("Removing failcount.")
+				# we didn't fail - remove the fail counter if it exists:
+				failcnt.unlink()
+			sf = open(status_fn,"w")
+			sf.write("ok")
+			sf.close()
+			self.qa_hook(initial_settings)
 		if abort or error:
 			sys.exit(1)
 		else:
@@ -291,6 +326,7 @@ class Metro:
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "modules"))
 from metro_support import lockFile, countFile, MetroError, CommandRunner, MetroSetup
+from JIRA_bug import JIRAHook
 m = Metro()
 m.run()
 
