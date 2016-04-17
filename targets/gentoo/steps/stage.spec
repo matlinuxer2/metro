@@ -58,6 +58,11 @@ then
 		fi
 	fi
 fi
+if [ -e /etc/make.conf ]; then
+	mkconf=/etc/make.conf
+else
+	mkconf=/etc/portage/make.conf
+fi
 $[[steps/epro_setup]]
 if [ -e /var/tmp/cache/package ]
 then
@@ -75,15 +80,15 @@ FEATURES="$FEATURES -sandbox"
 install -d /etc/portage
 # the quotes below prevent variable expansion of anything inside make.conf
 if [ -n "$[profile/subarch]" ]; then
-cat > /etc/portage/make.conf << "EOF"
+cat > $mkconf << "EOF"
 $[[files/make.conf.subarchprofile]]
 EOF
 elif [ "$[profile/format]" = "new" ]; then
-cat > /etc/portage/make.conf << "EOF"
+cat > $mkconf << "EOF"
 $[[files/make.conf.newprofile]]
 EOF
 else
-cat > /etc/portage/make.conf << "EOF"
+cat > $mkconf << "EOF"
 $[[files/make.conf.oldprofile]]
 EOF
 fi
@@ -190,6 +195,11 @@ clean: [
 # We only do this cleanup if ROOT = / - in other words, if we are going to be packing up /,
 # then we need to remove the custom configuration we've done to /. If we are building a
 # stage1, then everything is in /tmp/stage1root so we don't need to do this.
+if [ -e /etc/make.conf ]; then
+	mkconf=/etc/make.conf
+else
+	mkconf=/etc/portage/make.conf
+fi
 export ROOT=$[portage/ROOT]
 if [ "${ROOT}" = "/" ]
 then
@@ -213,11 +223,6 @@ else
 	pf="$[profile/format:zap]"
 	rm -f $ROOT/etc/make.conf $ROOT/etc/portage/make.conf
 	install -d $ROOT/etc/portage
-	if [ -e /etc/make.conf ]; then
-		mkconf=/etc/make.conf
-	else
-		mkconf=/etc/portage/make.conf
-	fi
 	if [ "$pf" = "new" ]; then
 		rm -f $ROOT/etc/portage/make.profile/parent || exit 3
 		install -d $ROOT/etc/portage/make.profile
@@ -227,6 +232,7 @@ else
 		cp -a /etc/make.profile $ROOT/etc || exit 4
 	fi
 	cp $mkconf $ROOT/etc/portage/make.conf || exit 4
+	ln -s portage/make.conf $ROOT/etc/make.conf
 fi
 # clean up temporary locations. Note that this also ends up removing our scripts, which
 # exist in /tmp inside the chroot. So after this cleanup, any execution inside the chroot
